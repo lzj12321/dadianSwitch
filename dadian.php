@@ -13,15 +13,27 @@ switch($action){
 
 
 function getData(){
+    try{
     $dev=$_GET['dev'];
-    // $sql='select marker from TestOrder where devnum=\';';
-    $ip='127.0.0.1';
-    $result=query_sql($ip,$sql);
-    while($row = $result->fetch_assoc()){
-        $data[] = $row;
+    $ip=$_GET['ip'];
+    $sn=$_GET['sn'];
+    $data=[];
+    for($i=0;$i<count($dev);$i++){
+        $sql='select marker from TestOrder where devnum=\''.$dev[$i].'\';';
+        // echo $sql;
+        $result=query_sql($ip[$i],$sql);
+        // echo $result;
+        $_data=$result->fetch_assoc();
+        // echo $_data['marker'].'  ';
+        $data[$sn[$i]]=$_data['marker'];
     }
     echo json_encode($data);
     exit();
+}
+catch(Exception $ex){
+    echo 'error';
+    exit();
+}
 }
 
 function setSwitchState(){

@@ -9,7 +9,7 @@
             }
             .switchTable{
                 margin-left: 300px;
-                margin-top: 50px;
+                margin-top: 100px;
                 font-size: 40px;
                 font-weight: bolder;
                 border-collapse: collapse;
@@ -25,10 +25,29 @@
             }
 
             button{
-                color: rosybrown;
+                -webkit-transition-duration: 0.4s; /* Safari */
+                transition-duration: 0.4s;
+                color: goldenrod;
                 background-color: transparent;
                 font-size: 30px;
                 font-weight: bolder;
+            }
+
+            button:after {
+                content: "";
+                opacity: 0;
+                transition: all 0.8s
+            }
+
+            button:active:after {
+                padding: 0;
+                margin: 0;
+                opacity: 1;
+                transition: 0s
+            }
+
+            h2{
+                color: blue;
             }
 
         </style>
@@ -36,10 +55,9 @@
     <body background="./bg.jpg">
         <h1>自动测试拉打点开关</h1>
         <div id="tableDiv">
-            <h1  v-show='alldata.length==0'>没有数据可展示</h1>
-            <button @click='updateData' v-show='true'>Click Me</button>
-            <table class="switchTable" v-show='alldata.length!=0'>
-            <table class="switchTable">
+            <h1  v-show='alldata.length==0||!isDataAvailable' style="color:red">没有可用数据</h1>
+            <!-- <button @click='updateData' v-show='alldata.length!=0&&isDataAvailable'>Click Me</button> -->
+            <table class="switchTable" v-show='alldata.length!=0&&isDataAvailable'>
                 <thead>
                     <tr>
                         <th>SN</th>
@@ -61,7 +79,7 @@
                     </tr>
                 </tbody>
             </table>
-            <!-- <h1>{{info}}</h1> -->
+            <!-- <h2>{{info}}</h2> -->
         </div>
 
       
@@ -72,6 +90,8 @@
         const switchData=new Vue({
             el:'#tableDiv',
             data:{
+                info:'12312',
+                isDataAvailable:true,
                 // alldata:[],
                 alldata:[
                     {
@@ -83,24 +103,23 @@
                     {
                         'serial':'二拉',
                         'switchState':true,
-                        'serverIp':'127.33.12.1',
+                        'serverIp':'192.168.253.90',
                         'devSerial':'24,16',
                     },
                     {
                         'serial':'三拉',
                         'switchState':false,
-                        'serverIp':'127.11.22.1',
+                        'serverIp':'192.168.253.90',
                         'devSerial':'15,23',
                     },
                     {
                         'serial':'四拉',
                         'switchState':true,
-                        'serverIp':'127.313.12.1',
+                        'serverIp':'192.168.253.90',
                         'devSerial':'19,38',
                     }
                 ],
                 
-                info:'12312',
                 switchClose:{
                     'color':'red'
                 },
@@ -110,30 +129,54 @@
             },
             mounted(){
                 var dev=[];
+                var ip=[];
+                var sn=[];
+                var states=[];
                 for(var i=0;i<this.alldata.length;++i){
                     var _dev=this.alldata[i]['devSerial'].split(',')[0];
+                    var _ip=this.alldata[i]['serverIp'];
                     dev.push(_dev);
-                    console.log(_dev);
+                    ip.push(_ip);
+                    sn.push(i);
+                    // states.push(1);
+                    // console.log(_dev);
+                    // console.log(_ip);
                 };
-                // axios.get(
-                //     './dadian.php',
-                //     {
-                //         params:{
-                //             action:'getData',
-                //             dev:dev
-                //         }
-                //     })
-                //     .then(function(response){
-                //         console.log(response.data);
-                //     })
-                //     .catch(function(error){
-                //         console.log(error);
-                //     })
+                axios.get('./dadian.php',{
+                    params:{
+                        action:'getData',
+                        dev:dev,
+                        ip:ip,
+                        sn:sn
+                        }
+                    })
+                    .then(response=>{
+                        var data=response.data;
+                        for(var i=0;i<data.length;i++){
+                            this.alldata[i]['switchState']=Boolean(parseInt(data[i]));
+                        };
+                        if(response.data=='error'){
+                            this.isDataAvailable=false;
+                        }
+                    })
+                    .catch(error=>{
+                        // console.log(error);
+                        this.isDataAvailable=false;
+                    })
+                // this.alldata[0]['switchState']=states[0];
+                // this.alldata[0]['switchState']=true;
             },
             methods:{
                 clickSwitch(index){
+                    var msg=window.prompt('输入qwer1234确认操作?');
+                    if(msg==null){
+                        return;
+                    }
+                    else if(msg!="qwer1234"){
+                        alert('输入内容错误！');
+                        return;
+                    }
                     this.alldata[index]['switchState']=!this.alldata[index]['switchState'];
-
                     axios.get(
                         './dadian.php',
                         {
@@ -157,6 +200,8 @@
                 },
 
                 updateData(){
+                    this.info='fuck';
+                    // this.alldata[0]['serial']='qwewewew';
                     console.log('click me');
                     var _tempData={
                         'serial':'四拉',
