@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+        <style>
+            h1{
+                text-align: center;
+                font-size: 90px;
+                color: royalblue;
+            }
+            .switchTable{
+                margin-left: 300px;
+                margin-top: 50px;
+                font-size: 40px;
+                font-weight: bolder;
+                border-collapse: collapse;
+                border: 4px solid royalblue;
+                text-align: center;
+                color: goldenrod;
+            }
+
+            td,tr,tbody,thead,th{
+                width: 220px;
+                border: 4px solid royalblue;
+                margin: 10px;
+            }
+
+            button{
+                color: rosybrown;
+                background-color: transparent;
+                font-size: 30px;
+                font-weight: bolder;
+            }
+
+        </style>
+    </head>
+    <body background="./bg.jpg">
+        <h1>自动测试拉打点开关</h1>
+        <div id="tableDiv">
+            <h1  v-show='alldata.length==0'>没有数据可展示</h1>
+            <button @click='updateData' v-show='true'>Click Me</button>
+            <table class="switchTable" v-show='alldata.length!=0'>
+            <table class="switchTable">
+                <thead>
+                    <tr>
+                        <th>SN</th>
+                        <th>拉号</th>
+                        <th>打点开关状态</th>
+                        <th>服务器IP</th>
+                        <th>设备号</th>
+                        <th>开关</th>
+                    </tr>
+                </thead>
+                 <tbody>
+                     <tr v-for='(item,index) in alldata'>
+                        <td>{{index|snSeralized}}</td>
+                        <td>{{item.serial}}</td>
+                        <td :style="item.switchState?switchOpen:switchClose">{{item.switchState|stateSerialize}}</td>
+                        <td>{{item.serverIp}}</td>
+                        <td>{{item.devSerial}}</td>
+                        <td><button @click='clickSwitch(index)'>switch</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- <h1>{{info}}</h1> -->
+        </div>
+
+      
+    
+    <script src="./vue.js"></script>
+    <script src="./axios.min.js"></script>
+    <script>
+        const switchData=new Vue({
+            el:'#tableDiv',
+            data:{
+                // alldata:[],
+                alldata:[
+                    {
+                        'serial':'一拉',
+                        'switchState':false,
+                        'serverIp':'192.168.253.90',
+                        'devSerial':'12,34,13',
+                    },
+                    {
+                        'serial':'二拉',
+                        'switchState':true,
+                        'serverIp':'127.33.12.1',
+                        'devSerial':'24,16',
+                    },
+                    {
+                        'serial':'三拉',
+                        'switchState':false,
+                        'serverIp':'127.11.22.1',
+                        'devSerial':'15,23',
+                    },
+                    {
+                        'serial':'四拉',
+                        'switchState':true,
+                        'serverIp':'127.313.12.1',
+                        'devSerial':'19,38',
+                    }
+                ],
+                
+                info:'12312',
+                switchClose:{
+                    'color':'red'
+                },
+                switchOpen:{
+                    'color':'green'
+                }
+            },
+            mounted(){
+                var dev=[];
+                for(var i=0;i<this.alldata.length;++i){
+                    var _dev=this.alldata[i]['devSerial'].split(',')[0];
+                    dev.push(_dev);
+                    console.log(_dev);
+                };
+                // axios.get(
+                //     './dadian.php',
+                //     {
+                //         params:{
+                //             action:'getData',
+                //             dev:dev
+                //         }
+                //     })
+                //     .then(function(response){
+                //         console.log(response.data);
+                //     })
+                //     .catch(function(error){
+                //         console.log(error);
+                //     })
+            },
+            methods:{
+                clickSwitch(index){
+                    this.alldata[index]['switchState']=!this.alldata[index]['switchState'];
+
+                    axios.get(
+                        './dadian.php',
+                        {
+                            params:{
+                                action:'setSwitchState',
+                                ip:this.alldata[index]['serverIp'],
+                                dev:this.alldata[index]['devSerial'],
+                                switchState:this.alldata[index]['switchState']
+                            }
+                    })
+                        .then(function(response){
+                            console.log(response.data);
+                            this.info=response.data;
+                        })
+                        .catch(function(error){
+                            console.log(error);
+                        });
+
+                    console.log(this.alldata[index]['serial']);
+                    console.log('push the switch button'+index);
+                },
+
+                updateData(){
+                    console.log('click me');
+                    var _tempData={
+                        'serial':'四拉',
+                        'switchState':true,
+                        'serverIp':'127.313.12.1',
+                        'devSerial':'19,38',
+                    };
+                    this.alldata.push(_tempData);
+                }
+            },
+            filters:{
+                snSeralized(index){
+                    return ++index;
+                },
+
+                stateSerialize(state){
+                    if(state){
+                        return '开';
+                    }
+                    else{
+                        return '关';
+                    }
+                }
+            }
+        })
+    </script>
+</body></html>
