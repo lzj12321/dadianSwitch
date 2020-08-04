@@ -91,7 +91,7 @@
             el:'#tableDiv',
             data:{
                 info:'12312',
-                isDataAvailable:true,
+                isDataAvailable:false,
                 // alldata:[],
                 alldata:[
                     {
@@ -138,9 +138,6 @@
                     dev.push(_dev);
                     ip.push(_ip);
                     sn.push(i);
-                    // states.push(1);
-                    // console.log(_dev);
-                    // console.log(_ip);
                 };
                 axios.get('./dadian.php',{
                     params:{
@@ -151,6 +148,7 @@
                         }
                     })
                     .then(response=>{
+                        this.isDataAvailable=true;
                         var data=response.data;
                         for(var i=0;i<data.length;i++){
                             this.alldata[i]['switchState']=Boolean(parseInt(data[i]));
@@ -160,11 +158,8 @@
                         }
                     })
                     .catch(error=>{
-                        // console.log(error);
                         this.isDataAvailable=false;
                     })
-                // this.alldata[0]['switchState']=states[0];
-                // this.alldata[0]['switchState']=true;
             },
             methods:{
                 clickSwitch(index){
